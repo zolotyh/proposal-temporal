@@ -39,7 +39,7 @@
 
     <emu-clause id="sec-temporal-absolute-prototype">
       <h1>Temporal.Absolute.prototype</h1>
-      <p>The initial value of Temporal.Absolute.prototype is %Temporal.Absolute.prototype%.</p>
+      <p>The initial value of `Temporal.Absolute.prototype` is %Temporal.Absolute.prototype%.</p>
       <p>This property has the attributes { [[Writable]]: *false*, [[Enumerable]]: *false*, [[Configurable]]: *false* }.</p>
     </emu-clause>
 
@@ -161,7 +161,7 @@
 
     <emu-clause id="sec-temporal.Absolute.prototype.constructor">
       <h1>Temporal.Absolute.prototype.constructor</h1>
-      <p>The initial value of Temporal.Absolute.prototype.constructor is %Temporal.Absolute%.</p>
+      <p>The initial value of `Temporal.Absolute.prototype.constructor` is %Temporal.Absolute%.</p>
     </emu-clause>
 
     <emu-clause id="sec-temporal.Absolute.prototype-@@tostringtag">
@@ -435,10 +435,7 @@
         1. Let _absolute_ be the *this* value.
         1. Perform ? RequireInternalSlot(_absolute_, [[InitializedTemporalAbsolute]]).
         1. Let _timeZone_ be ? ToTemporalTimeZone(_temporalTimeZoneLike_).
-        1. If _calendarLike_ is *undefined*, then
-          1. Let _calendar_ be ! GetDefaultCalendar().
-        1. Else,
-          1. Let _calendar_ be ? ToTemporalCalendar(_calendarLike_).
+        1. Let _calendar_ be ? ToTemporalCalendar(_calendarLike_).
         1. Return ? GetTemporalDateTimeFor(_timeZone_, _absolute_, _calendar_).
       </emu-alg>
     </emu-clause>

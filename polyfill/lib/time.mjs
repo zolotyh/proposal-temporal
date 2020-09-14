@@ -1,6 +1,7 @@
 /* global __debug__ */
 
 import { ES } from './ecmascript.mjs';
+import { DateTimeFormat } from './intl.mjs';
 import { GetIntrinsic, MakeIntrinsicClass } from './intrinsicclass.mjs';
 
 import {
@@ -357,9 +358,9 @@ export class Time {
     let resultString = `${hour}:${minute}${seconds}`;
     return resultString;
   }
-  toLocaleString(...args) {
+  toLocaleString(locales = undefined, options = undefined) {
     if (!ES.IsTemporalTime(this)) throw new TypeError('invalid receiver');
-    return new Intl.DateTimeFormat(...args).format(this);
+    return new DateTimeFormat(locales, options).format(this);
   }
   valueOf() {
     throw new TypeError('use compare() or equals() to compare Temporal.Time');
@@ -382,15 +383,14 @@ export class Time {
     return new DateTime(year, month, day, hour, minute, second, millisecond, microsecond, nanosecond, calendar);
   }
   getFields() {
-    const fields = ES.ToTemporalTimeRecord(this);
-    if (!fields) throw new TypeError('invalid receiver');
-    return fields;
+    if (!ES.IsTemporalTime(this)) throw new TypeError('invalid receiver');
+    return ES.ToTemporalTimeRecord(this);
   }
 
   static from(item, options = undefined) {
     const overflow = ES.ToTemporalOverflow(options);
     let hour, minute, second, millisecond, microsecond, nanosecond;
-    if (typeof item === 'object' && item) {
+    if (ES.Type(item) === 'Object') {
       if (ES.IsTemporalTime(item)) {
         hour = GetSlot(item, HOUR);
         minute = GetSlot(item, MINUTE);
@@ -399,7 +399,6 @@ export class Time {
         microsecond = GetSlot(item, MICROSECOND);
         nanosecond = GetSlot(item, NANOSECOND);
       } else {
-        // Intentionally largest to smallest units
         ({ hour, minute, second, millisecond, microsecond, nanosecond } = ES.ToTemporalTimeRecord(item));
       }
     } else {
@@ -428,6 +427,6 @@ export class Time {
     return ES.ComparisonResult(0);
   }
 }
-Time.prototype.toJSON = Time.prototype.toString;
+Time.prototype.toJSON = Time.prototype.toString; // XXX function identity
 
 MakeIntrinsicClass(Time, 'Temporal.Time');
