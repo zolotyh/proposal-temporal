@@ -374,6 +374,99 @@ export class Duration {
     if (!ES.IsTemporalDuration(result)) throw new TypeError('invalid result');
     return result;
   }
+  round(options) {
+    if (!ES.IsTemporalDuration(this)) throw new TypeError('invalid receiver');
+    const overflow = ES.ToTemporalDurationOverflow(options);
+    const smallestUnit = ES.ToSmallestTemporalDurationUnit(options, 'nanoseconds');
+    const relativeTo = ES.ToRelativeTemporalObject(options);
+    let defaultLargestUnit = 'hours';
+    if (relativeTo) defaultLargestUnit = 'years';
+    const largestUnit = ES.ToLargestTemporalUnit(options, defaultLargestUnit);
+    ES.ValidateTemporalDifferenceUnits(largestUnit, smallestUnit);
+    if (
+      !relativeTo &&
+      (largestUnit === 'years' || largestUnit === 'months' || largestUnit === 'weeks' || largestUnit === 'days')
+    ) {
+      throw new RangeError(`relativeTo is required for ${largestUnit} conversion`);
+    }
+    const roundingMode = ES.ToTemporalRoundingMode(options);
+    const maximumIncrements = {
+      years: undefined,
+      months: undefined,
+      weeks: undefined,
+      days: undefined,
+      hours: 24,
+      minutes: 60,
+      seconds: 60,
+      milliseconds: 1000,
+      microseconds: 1000,
+      nanoseconds: 1000
+    };
+    const roundingIncrement = ES.ToTemporalRoundingIncrement(options, maximumIncrements[smallestUnit], false);
+
+    let {
+      years,
+      months,
+      weeks,
+      days,
+      hours,
+      minutes,
+      seconds,
+      milliseconds,
+      microseconds,
+      nanoseconds
+    } = ES.RoundDuration(
+      GetSlot(this, YEARS),
+      GetSlot(this, MONTHS),
+      GetSlot(this, WEEKS),
+      GetSlot(this, DAYS),
+      GetSlot(this, HOURS),
+      GetSlot(this, MINUTES),
+      GetSlot(this, SECONDS),
+      GetSlot(this, MILLISECONDS),
+      GetSlot(this, MICROSECONDS),
+      GetSlot(this, NANOSECONDS),
+      roundingIncrement,
+      smallestUnit,
+      roundingMode,
+      relativeTo
+    );
+    ({ years, months, weeks, days } = ES.BalanceDurationRelative(
+      years,
+      months,
+      weeks,
+      days,
+      overflow,
+      largestUnit,
+      relativeTo
+    ));
+    ({ days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds } = ES.BalanceDuration(
+      days,
+      hours,
+      minutes,
+      seconds,
+      milliseconds,
+      microseconds,
+      nanoseconds,
+      largestUnit
+    ));
+
+    const Construct = ES.SpeciesConstructor(this, Duration);
+    const result = new Construct(
+      years,
+      months,
+      weeks,
+      days,
+      hours,
+      minutes,
+      seconds,
+      milliseconds,
+      microseconds,
+      nanoseconds
+    );
+    if (!ES.IsTemporalDuration(result)) throw new TypeError('invalid result');
+    return result;
+  }
   getFields() {
     const fields = ES.ToRecord(this, [
       ['days'],

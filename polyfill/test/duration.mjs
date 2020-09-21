@@ -40,6 +40,9 @@ describe('Duration', () => {
       it('Duration.prototype.abs is a Function', () => {
         equal(typeof Duration.prototype.abs, 'function');
       });
+      it('Duration.prototype.round is a Function', () => {
+        equal(typeof Duration.prototype.round, 'function');
+      });
     });
   });
   describe('Construction', () => {
@@ -684,6 +687,49 @@ describe('Duration', () => {
       equal(`${zero}`, `${zero2}`);
       notEqual(zero, zero2);
       equal(zero2.sign, 0);
+    });
+  });
+  describe('Duration.round()', () => {
+    const duration = new Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
+    it('options may only be an object or undefined', () => {
+      [null, 1, 'hello', true, Symbol('foo'), 1n].forEach((badOptions) =>
+        throws(() => duration.round(badOptions), TypeError)
+      );
+      [{}, () => {}, undefined].forEach((options) => equal(`${duration.round(options)}`, 'P5Y5M5W5DT5H5M5.005005005S'));
+    });
+    it('throws on disallowed or invalid smallestUnit', () => {
+      ['era', 'nonsense'].forEach((smallestUnit) => {
+        throws(() => duration.round({ smallestUnit }), RangeError);
+      });
+    });
+    it('throws if smallestUnit is larger than largestUnit', () => {
+      const units = [
+        'years',
+        'months',
+        'weeks',
+        'days',
+        'hours',
+        'minutes',
+        'seconds',
+        'milliseconds',
+        'microseconds',
+        'nanoseconds'
+      ];
+      for (let largestIdx = 1; largestIdx < units.length; largestIdx++) {
+        for (let smallestIdx = 0; smallestIdx < largestIdx; smallestIdx++) {
+          const largestUnit = units[largestIdx];
+          const smallestUnit = units[smallestIdx];
+          throws(() => duration.round({ largestUnit, smallestUnit }), RangeError);
+        }
+      }
+    });
+    it('assumes a different default for largestUnit if smallestUnit is larger than days', () => {
+      equal(`${duration.round({ smallestUnit: 'years' })}`, 'P5Y');
+      equal(`${duration.round({ smallestUnit: 'months' })}`, 'P65M');
+      equal(`${duration.round({ smallestUnit: 'weeks' })}`, 'P139W');
+    });
+    it('throws on invalid roundingMode', () => {
+      throws(() => duration.round({ roundingMode: 'cile' }), RangeError);
     });
   });
 });
